@@ -15,6 +15,8 @@ let currentUser = null;
 let currentProfile = null;
 let chosenService = null;
 let chosenTime = null;
+let chosenGuestService = null;
+let chosenGuestTime = null;
 let services = [];
 let clients = [];
 
@@ -27,7 +29,8 @@ async function init() {
 
   const { data: { session } } = await sb.auth.getSession();
   if (!session) {
-    showView('login');
+    showGuestView();
+    loadGuestServices();
     return;
   }
 
@@ -72,10 +75,18 @@ async function init() {
 }
 
 function showView(name) {
-  for (const id of ['view-login', 'view-client', 'view-master']) {
+  for (const id of ['view-login', 'view-client', 'view-master', 'view-guest']) {
     document.querySelector('#' + id).classList.add('hidden');
   }
   document.querySelector('#view-' + name).classList.remove('hidden');
+}
+
+function showGuestView() {
+  showView('guest');
+}
+
+function showLoginView() {
+  showView('login');
 }
 
 function initTabs(containerId) {
@@ -104,6 +115,7 @@ function loadTab(tab) {
     if (tab === 'bookings') loadAdminBookings();
     if (tab === 'clients') loadClients();
     if (tab === 'm-notifications') loadNotifications('masterNotificationsList');
+    if (tab === 'guest-requests') loadGuestRequests();
   }
 }
 
@@ -424,6 +436,112 @@ async function toggleBlock(id, currentStatus) {
   const { error } = await sb.from('profiles').update({ status: next }).eq('id', id);
   if (error) return toast(error.message);
   loadClients();
+}
+
+
+
+// --- Гостевой бронирование без регистрации ---
+async function loadGuestServices() {
+  const { data, error } = await sb
+    .from('services')
+    .select('*')
+    .eq('is_active', true)
+    .order('sort_order');
+  if (error) return toast(error.message);
+  services = data || [];
+  const select = document.querySelector('#guestServices');
+  select.innerHTML = services
+    .map(s => `<option value="${s.id}">${esc(s.name)}</option>`)
+    .join('');
+  if (services.length > 0) {
+    chooseGuestService(services[0].id);
+  }
+}
+
+function chooseGuestService(id) {
+  document.querySelectorAll('#guestServices option').forEach(opt => opt.classList.remove('selected'));
+  const opt = document.querySelector(`#guestServices option[value="${id}"]`);
+  if (opt) opt.classList.add('selected');
+  chosenGuestService = id;
+  chosenGuestTime = null;
+  document.querySelector('#guestCreateBtn').disabled = true;
+  loadGuestSlots();
+}
+
+async function loadGuestSlots() {
+  const date = document.querySelector('#guestDate').value;
+  if (!date || !chosenGuestService) return;
+  const { data, error } = await sb.rpc('get_available_slots', { p_date: date, p_service_id: chosenGuestService });
+  if (error) return toast(error.message);
+  const slots = (data || []).map(x => x.slot_time);
+  const container = document.querySelector('#guestSlots');
+  container.innerHTML = slots.length
+    ? slots.map(x => `<button onclick="chooseGuestTime('${x}')">${x}</button>`).join('')
+    : '<span class="muted">На эту дату нет свободного времени.</span>';
+}
+
+function chooseGuestTime(time) {
+  document.querySelectorAll('#guestSlots button').forEach(btn => btn.classList.remove('selected'));
+  event.target.classList.add('selected');
+  chosenGuestTime = time;
+  document.querySelector('#guestCreateBtn').disabled = false;
+}
+
+async function createGuestBooking() {
+  const name = document.querySelector('#guestName').value.trim();
+  const phone = document.querySelector('#guestPhone').value.trim();
+  const date = document.querySelector('#guestDate').value;
+  if (!name || !phone || !date || !chosenGuestService || !chosenGuestTime) {
+    return toast('Заполните все поля');
+  }
+  const { data, error } = await sb.rpc('create_guest_booking', {
+    p_name: name,
+    p_phone: phone,
+    p_date: date,
+    p_service_id: chosenGuestService,
+    p_start_time: chosenGuestTime,
+    p_comment: ''
+  });
+  if (error) return toast(error.message);
+  const confirmationCode = data.confirmation_code;
+  document.querySelector('#guestResult').innerHTML = 
+    `<p class="muted">Запись создана. Ваш код подтверждения: <strong>${confirmationCode}</strong>.</p>`;
+  document.querySelector('#guestCreateBtn').disabled = true;
+  // Reset form
+  document.querySelector('#guestName').value = '';
+  document.querySelector('#guestPhone').value = '';
+  document.querySelector('#guestDate').value = '';
+  document.querySelector('#guestSlots').innerHTML = '';
+  chosenGuestService = null;
+  chosenGuestTime = null;
+}
+
+async function loadGuestRequests() {
+  const { data, error } = await sb.rpc('get_pending_guest_bookings');
+  if (error) return toast(error.message);
+  const container = document.querySelector('#guestRequestsList');
+  if (!data || data.length === 0) {
+    container.innerHTML = '<p class="muted">Нет ожидающих запросов.</p>';
+    return;
+  }
+  container.innerHTML = data.map(gb => `
+    <div class="card">
+      <h3>${esc(gb.service_name)}</h3>
+      <b>${esc(gb.name)}</b><br>
+      Телефон: ${esc(gb.phone)}<br>
+      Дата: ${new Date(gb.date).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' })} в ${gb.start_time.slice(0,5)}<br>
+      Код подтверждения: ${gb.confirmation_code}
+      <button onclick="confirmGuestBooking('${gb.id}')">Подтвердить</button>
+    </div>
+  `).join('');
+}
+
+async function confirmGuestBooking(id) {
+  if (!confirm('Подтвердить эту гостевую запись?')) return;
+  const { error } = await sb.rpc('confirm_guest_booking', { p_booking_id: id });
+  if (error) return toast(error.message);
+  toast('Запись подтверждена');
+  loadGuestRequests();
 }
 
 init();

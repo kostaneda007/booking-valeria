@@ -24,6 +24,36 @@
       </div>
     </section>
 
+<!-- Гостевой просмотр (бронирование без регистрации) -->
+    <section id="view-guest" class="hero glass">
+      <p class="eyebrow">Бронирование без регистрации</p>
+      <h1>Забронируйте время на звонок</h1>
+      <p>Выберите удобную дату и услугу, оставьте контакт и мастер перезвонит для подтверждения.</p>
+
+      <div class="grid">
+        <div class="form-group">
+          <label>Ваше имя<input id="guestName" type="text" placeholder="Ваше имя" required></label>
+        </div>
+        <div class="form-group">
+          <label>Телефон<input id="guestPhone" type="tel" placeholder="Телефон" required></label>
+        </div>
+      </div>
+
+      <label>Услуга
+        <select id="guestServices"></select>
+      </label>
+
+      <label>Дата<input id="guestDate" type="date" onchange="loadGuestSlots()"></label>
+      <div id="guestSlots" class="slots"></div>
+
+      <button id="guestCreateBtn" disabled onclick="createGuestBooking()">Запросить звонок</button>
+      <div id="guestResult" class="muted"></div>
+
+      <p class="muted" style="margin-top:18px;">
+        <button onclick="showLoginView()">Админ-панель</button>
+      </p>
+    </section>
+
     <!-- Кабинет клиента -->
     <div id="view-client" class="hidden">
       <nav>
@@ -73,7 +103,8 @@
         <button data-tab="bookings">Записи</button>
         <button data-tab="clients">Клиенты</button>
         <button data-tab="m-notifications">Уведомления</button>
-      </nav>
+        <button data-tab="guest-requests">Гостевые запросы</button>
+        </nav>
       <section id="dashboard" class="tab glass">
         <p class="eyebrow">КАБИНЕТ МАСТЕРА</p>
         <h2 id="masterGreeting">Добрый день, Валерия</h2>
@@ -118,6 +149,10 @@
       <section id="m-notifications" class="tab glass hidden">
         <h2>Уведомления</h2>
         <div id="masterNotificationsList"></div>
+      </section>
+      <section id="guest-requests" class="tab glass hidden">
+        <h2>Гостевые запросы</h2>
+        <div id="guestRequestsList"></div>
       </section>
     </div>
   </main>
