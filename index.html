@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Запись к Валерии</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="shell">
+    <header>
+      <div class="brand">V<span>·</span> LASH</div>
+      <button id="logoutBtn" class="quiet hidden" onclick="logout()">Выйти</button>
+    </header>
+
+    <!-- Экран входа -->
+    <section id="view-login" class="hero glass hidden">
+      <p class="eyebrow">ОНЛАЙН-ЗАПИСЬ</p>
+      <h1>Время для<br>вашего взгляда</h1>
+      <p>Ламинирование ресниц у Валерии</p>
+      <div id="auth">
+        <label>Email<input id="email" type="email" placeholder="you@example.com"></label>
+        <button onclick="requestCode()">Получить код</button>
+      </div>
+    </section>
+
+    <!-- Кабинет клиента -->
+    <div id="view-client" class="hidden">
+      <nav>
+        <button data-tab="book" class="active">Записаться</button>
+        <button data-tab="appointments">Мои записи</button>
+        <button data-tab="history">История</button>
+        <button data-tab="notifications">Уведомления</button>
+        <button data-tab="profile">Профиль</button>
+      </nav>
+      <section id="book" class="tab glass">
+        <p class="eyebrow">НОВАЯ ЗАПИСЬ</p>
+        <h2>Выберите услугу</h2>
+        <div id="services"></div>
+        <label>Дата<input id="bookDate" type="date" onchange="loadSlots()"></label>
+        <div id="slots" class="slots"></div>
+        <button id="createBooking" disabled onclick="createBooking()">Подтвердить запись</button>
+      </section>
+      <section id="appointments" class="tab glass hidden">
+        <h2>Мои записи</h2>
+        <div id="myBookings"></div>
+      </section>
+      <section id="history" class="tab glass hidden">
+        <h2>История записей</h2>
+        <div id="historyBookings"></div>
+      </section>
+      <section id="notifications" class="tab glass hidden">
+        <h2>Уведомления</h2>
+        <div id="notificationsList"></div>
+      </section>
+      <section id="profile" class="tab glass hidden">
+        <h2>Профиль</h2>
+        <label>Email<input id="pemail" disabled></label>
+        <label>Имя<input id="pname"></label>
+        <label>Телефон<input id="pphone"></label>
+        <label>День рождения<input id="pbirthday" type="date"></label>
+        <label>Комментарий<textarea id="pcomment"></textarea></label>
+        <button onclick="saveProfile()">Сохранить</button>
+      </section>
+    </div>
+
+    <!-- Кабинет мастера -->
+    <div id="view-master" class="hidden">
+      <nav>
+        <button data-tab="dashboard" class="active">Главная</button>
+        <button data-tab="calendar">Календарь</button>
+        <button data-tab="windows">Рабочие окна</button>
+        <button data-tab="bookings">Записи</button>
+        <button data-tab="clients">Клиенты</button>
+        <button data-tab="m-notifications">Уведомления</button>
+      </nav>
+      <section id="dashboard" class="tab glass">
+        <p class="eyebrow">КАБИНЕТ МАСТЕРА</p>
+        <h2 id="masterGreeting">Добрый день, Валерия</h2>
+        <div id="stats" class="stats"></div>
+      </section>
+      <section id="calendar" class="tab glass hidden">
+        <h2>Календарь</h2>
+        <label>Дата<input id="calendarDate" type="date" onchange="loadCalendar()"></label>
+        <div id="calendarList"></div>
+      </section>
+      <section id="windows" class="tab glass hidden">
+        <h2>Рабочие окна</h2>
+        <div class="grid">
+          <label>Дата<input id="wdate" type="date"></label>
+          <label>Начало<input id="wstart" type="time"></label>
+          <label>Окончание<input id="wend" type="time"></label>
+        </div>
+        <label>Комментарий<input id="wcomment" placeholder="например, принимаю в студии"></label>
+        <button onclick="addWindow()">Добавить окно</button>
+        <div id="windowsList"></div>
+      </section>
+      <section id="bookings" class="tab glass hidden">
+        <h2>Записи</h2>
+        <details>
+          <summary>Добавить запись вручную</summary>
+          <div class="grid">
+            <label>Клиент<select id="bclient"></select></label>
+            <label>Услуга<select id="bservice"></select></label>
+            <label>Дата<input id="bdate" type="date"></label>
+            <label>Время<input id="btime" type="time"></label>
+          </div>
+          <label>Комментарий<input id="bcomment"></label>
+          <button onclick="addAdminBooking()">Создать запись</button>
+        </details>
+        <label>Поиск<input id="bookingSearch" oninput="loadAdminBookings()" placeholder="Имя, телефон или email"></label>
+        <div id="adminBookings"></div>
+      </section>
+      <section id="clients" class="tab glass hidden">
+        <h2>Клиенты</h2>
+        <div id="clientsList"></div>
+      </section>
+      <section id="m-notifications" class="tab glass hidden">
+        <h2>Уведомления</h2>
+        <div id="masterNotificationsList"></div>
+      </section>
+    </div>
+  </main>
+
+  <div id="toast" style="display:none;position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#302b35;color:#fff;padding:12px 18px;border-radius:14px;z-index:99"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="config.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
