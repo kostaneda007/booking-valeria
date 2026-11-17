@@ -550,7 +550,7 @@ async function createGuestBooking() {
     p_comment: ''
   });
   if (error) return toast(error.message);
-  const confirmationCode = data.confirmation_code;
+  const confirmationCode = data && data.length ? data[0].confirmation_code : '';
   const result = document.getElementById('guestResult');
   result.innerHTML = `<p class="muted">Запись создана. Ваш код подтверждения: <strong>${confirmationCode}</strong>.</p>`;
   // Reset to calendar

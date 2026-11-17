@@ -377,19 +377,18 @@ create policy "guest_profiles_select_guest" on public.guest_profiles
 create or replace function public.create_guest_booking(
     p_name text,
     p_phone text,
-    p_email text default null,
-    p_service_id bigint,
     p_date date,
-    p_start_time time,
+    p_service_id bigint,
+    p_start_time time without time zone,
     p_comment text default ''
 )
-returns table (booking_id uuid, confirmation_code text)
+returns table (booking_id bigint, confirmation_code text)
 language plpgsql
 security definer
 set search_path = public
 as $$
 declare
-    v_booking_id uuid;
+    v_booking_id bigint;
     v_guest_profile_id uuid;
     v_confirmation_code text;
     v_service public.services%rowtype;
@@ -397,7 +396,6 @@ declare
     v_text text;
     v_master_id uuid;
 begin
-    -- проверка, что услуга существует и активна
     select * into v_service
     from public.services
     where id = p_service_id and is_active = true;
@@ -406,27 +404,22 @@ begin
         raise exception 'Услуга не найдена или неактивна';
     end if;
 
-    -- вычислим окончание приема
     v_end_time := (p_date + p_start_time + (v_service.duration_min || ' minutes')::interval)::time;
 
-    -- сгенерируем 6-символьный код подтверждения
     v_confirmation_code := substring(md5(random()::text), 1, 6);
 
-    -- создадим профиль гостя
     insert into public.guest_profiles (name, phone, email)
-    values (p_name, p_phone, p_email)
+    values (p_name, p_phone, null)
     returning id into v_guest_profile_id;
 
-    -- создадим запись гостевого бронирования
     insert into public.guest_bookings (
         guest_profile_id, name, phone, email, service_id, date, start_time, end_time,
         status, confirmation_code, comment
     ) values (
-        v_guest_profile_id, p_name, p_phone, p_email, p_service_id, p_date, p_start_time,
+        v_guest_profile_id, p_name, p_phone, null, p_service_id, p_date, p_start_time,
         v_end_time, 'pending', v_confirmation_code, coalesce(trim(p_comment), '')
     ) returning id into v_booking_id;
 
-    -- текст уведомления для мастера
     v_text := format(
         E'Новый гостевый запрос.\nИмя: %s\nТелефон: %s\nУслуга: %s\nДата: %s, время: %s–%s',
         p_name, p_phone, v_service.name,
@@ -435,11 +428,10 @@ begin
         to_char(v_end_time, 'HH24:MI')
     );
 
-    -- оповещение мастеру
     select id into v_master_id from public.profiles where role = 'master' limit 1;
     if v_master_id is not null then
         insert into public.notifications (user_id, type, title, text)
-        values (v_master_id, 'new_guest_booking', 'Новый гостевой запрос', v_text);
+        values (v_master_id, 'new_guest_booking', 'Новый гостевый запрос', v_text);
     end if;
 
     return query select v_booking_id, v_confirmation_code;
