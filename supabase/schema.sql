@@ -313,24 +313,34 @@ $$;
 -- ============================================================
 
 -- Таблица гостевых записей
-create table if not exists public.guest_bookings (
+-- Guest profiles table
+create table if not exists public.guest_profiles (
     id uuid primary key default gen_random_uuid(),
     name text not null,
     phone text not null,
     email text,
-    service_id bigint not null references public.services(id),
-    date date not null,
-    start_time time not null,
-    end_time time not null,
-    status text not null default 'pending' check (status in ('pending', 'confirmed', 'cancelled')),
-    confirmation_code text,
-    comment text,
-    created_at timestamptz not null default now(),
-    updated_at timestamptz not null default now()
+    is_active boolean not null default true,
+    created_at timestamptz not null default now()
 );
+
+-- Link guest bookings to a guest profile
+do $$
+begin
+    if not exists (
+        select 1 from information_schema.columns
+        where table_schema = 'public'
+        and table_name = 'guest_bookings'
+        and column_name = 'guest_profile_id'
+    ) then
+        alter table public.guest_bookings
+        add column guest_profile_id uuid references public.guest_profiles(id);
+    end if;
+end
+$$;
 
 create index if not exists idx_guest_bookings_date on public.guest_bookings(date);
 create index if not exists idx_guest_bookings_status on public.guest_bookings(status);
+create index if not exists idx_guest_profiles_email on public.guest_profiles(email);
 
 -- RLS для гостевых бронирований
 alter table public.guest_bookings enable row level security;
@@ -348,8 +358,18 @@ create policy "guest_bookings_update_master" on public.guest_bookings
     using (public.is_master())
     with check (true);
 
--- Политика для отображения доступных услуг гостям
-create policy "services_select_guest" on public.services
+-- RLS for guest profiles
+alter table public.guest_profiles enable row level security;
+
+create policy "guest_profiles_insert" on public.guest_profiles
+    for insert
+    with check (true);
+
+create policy "guest_profiles_select_master" on public.guest_profiles
+    for select
+    using (public.is_master());
+
+create policy "guest_profiles_select_guest" on public.guest_profiles
     for select
     using (is_active = true);
 
@@ -370,6 +390,7 @@ set search_path = public
 as $$
 declare
     v_booking_id uuid;
+    v_guest_profile_id uuid;
     v_confirmation_code text;
     v_service public.services%rowtype;
     v_end_time time;
@@ -391,12 +412,17 @@ begin
     -- сгенерируем 6-символьный код подтверждения
     v_confirmation_code := substring(md5(random()::text), 1, 6);
 
-    -- создадим запись
+    -- создадим профиль гостя
+    insert into public.guest_profiles (name, phone, email)
+    values (p_name, p_phone, p_email)
+    returning id into v_guest_profile_id;
+
+    -- создадим запись гостевого бронирования
     insert into public.guest_bookings (
-        name, phone, email, service_id, date, start_time, end_time,
+        guest_profile_id, name, phone, email, service_id, date, start_time, end_time,
         status, confirmation_code, comment
     ) values (
-        p_name, p_phone, p_email, p_service_id, p_date, p_start_time,
+        v_guest_profile_id, p_name, p_phone, p_email, p_service_id, p_date, p_start_time,
         v_end_time, 'pending', v_confirmation_code, coalesce(trim(p_comment), '')
     ) returning id into v_booking_id;
 
