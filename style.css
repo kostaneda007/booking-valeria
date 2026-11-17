@@ -38,6 +38,7 @@ body {
 }
 
 header {
+  position: relative;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -54,9 +55,9 @@ header {
   display: block;
   width: 120px;
   height: auto;
-  background: #1a1a1a;
-  border-radius: 8px;
-  padding: 4px;
+  background: none;
+  padding: 0;
+  border-radius: 0;
 }
 
 @media (max-width: 480px) {
@@ -64,6 +65,84 @@ header {
 }
 
 .brand span { color: var(--accent); }
+
+/* Admin panel button – top right */
+.header-actions {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  z-index: 5;
+}
+
+.header-actions button {
+  background: rgba(255,255,255,0.12);
+  color: var(--text-primary);
+  border: 1px solid var(--border);
+  padding: 8px 14px;
+  border-radius: 8px;
+  font: 600 13px 'Open Sans', sans-serif;
+  cursor: pointer;
+}
+
+.header-actions button:hover {
+  background: rgba(255,255,255,0.2);
+}
+
+/* Admin login form (login + password) */
+.admin-login {
+  display: flex;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.admin-login label {
+  flex: 1;
+  font-size: 13px;
+  font-weight: 600;
+  margin-top: 6px;
+}
+
+.admin-login input {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid var(--input-border);
+  background: var(--input-bg);
+  border-radius: 10px;
+  color: var(--text-primary);
+  font: 400 15px 'Open Sans', sans-serif;
+}
+
+.admin-login button {
+  margin-top: 10px;
+  background: linear-gradient(125deg, var(--button-bg), var(--button-hover));
+  color: #fff;
+  padding: 10px 18px;
+  border: 0;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  width: 100%;
+}
+
+.admin-login button:hover {
+  background: linear-gradient(125deg, var(--button-hover), #6a6a6a);
+}
+
+/* Minimal login button (used as link-like button) */
+.login-as-admin {
+  background: rgba(255,255,255,0.1);
+  color: var(--text-primary);
+  border: 1px solid var(--border);
+  padding: 8px 14px;
+  border-radius: 8px;
+  font: 600 13px 'Open Sans', sans-serif;
+  cursor: pointer;
+}
+
+.login-as-admin:hover {
+  background: rgba(255,255,255,0.2);
+}
 
 button {
   border: 0;

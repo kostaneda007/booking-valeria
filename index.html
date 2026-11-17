@@ -11,17 +11,20 @@
   <main class="shell">
     <header>
       <div class="brand"><img src="assets/logo.svg" alt="V· LASH" class="brand-logo"></div>
-      <button id="logoutBtn" class="quiet hidden" onclick="logout()">Выйти</button>
+      <button id="adminPanelBtn" class="login-as-admin" onclick="showLoginView()">Админ-панель</button>
     </header>
 
-    <!-- Экран входа -->
+    <!-- Экран входа (логин+пароль) -->
     <section id="view-login" class="hero glass hidden">
       <p class="eyebrow">ОНЛАЙН-ЗАПИСЬ</p>
       <h1>Время для<br>вашего взгляда</h1>
       <p>Ламинирование ресниц у Валерии</p>
       <div id="auth">
-        <label>Email<input id="email" type="email" placeholder="you@example.com"></label>
-        <button onclick="requestCode()">Получить код</button>
+        <div class="admin-login">
+          <label>Логин<br><input id="loginField" type="text" placeholder="Введите логин"></label>
+          <label>Пароль<br><input id="passwordField" type="password" placeholder="Введите пароль"></label>
+          <button onclick="adminLogin()">Войти</button>
+        </div>
       </div>
     </section>
 

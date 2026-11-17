@@ -89,6 +89,35 @@ function showLoginView() {
   showView('login');
 }
 
+/* Admin login – hardcoded credentials */
+async function adminLogin() {
+  const login = document.getElementById('loginField').value.trim();
+  const password = document.getElementById('passwordField').value.trim();
+  if (login === 'Valery' && password === '!Kostler89') {
+    // emulate a master session (real frontend uses Supabase role 'master')
+    currentUser = { id: 'admin', email: 'valery@example.com', app_metadata: {} };
+    currentProfile = {
+      id: 'admin',
+      name: 'Валерия',
+      phone: '+7 (123) 456-78-90',
+      role: 'master',
+      status: 'active'
+    };
+    document.getElementById('adminPanelBtn').textContent = 'Выйти из админки';
+    showView('master');
+    initTabs('view-master');
+    const today = new Date().toISOString().slice(0, 10);
+    for (const id of ['wdate', 'bdate', 'calendarDate']) {
+      const el = document.querySelector('#' + id);
+      if (el) el.value = today;
+    }
+    loadTab('dashboard');
+    toast('Добро пожаловать, администратор!');
+  } else {
+    toast('Неверный логин или пароль');
+  }
+}
+
 function initTabs(containerId) {
   const root = document.querySelector('#' + containerId);
   root.querySelectorAll('nav button').forEach((btn) => {
@@ -553,5 +582,17 @@ function showCalendar() {
   document.getElementById('guestCalendar').classList.remove('hidden');
   setTodayDate();
   loadGuestSlots();
+}
+
+async function loadGuestSlots() {
+  const date = document.getElementById('guestDate').value;
+  if (!date || !chosenGuestService) return;
+  const { data, error } = await sb.rpc('get_available_slots', { p_date: date, p_service_id: chosenGuestService });
+  if (error) return toast(error.message);
+  const slots = (data || []).map(x => x.slot_time);
+  const container = document.getElementById('guestSlots');
+  container.innerHTML = slots.length
+    ? slots.map(x => `<button onclick="chooseGuestTime('${x}')">${x}</button>`).join('')
+    : '<span class="muted">На эту дату нет свободного времени.</span>';
 }
 init();
