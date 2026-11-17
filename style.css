@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;500;600;700&display=swap');
 
 :root {
   --bg-primary: #121212;
@@ -24,10 +24,10 @@ body {
   margin: 0;
   min-height: 100vh;
   color: var(--text-primary);
-  font-family: 'Manrope', Arial, sans-serif;
-  background: radial-gradient(circle at 10% 10%, #222222 0%, transparent 35%),
-              radial-gradient(circle at 90% 90%, #1a1a1a 0%, transparent 35%),
-              var(--bg-primary);
+  font-family: 'Open Sans', Arial, sans-serif;
+  background: radial-gradient(circle at 10% 10%, rgba(255,255,255,0.08) 0%, transparent 35%),
+              radial-gradient(circle at 90% 90%, rgba(255,255,255,0.06) 0%, transparent 35%),
+              linear-gradient(135deg, #222222 0%, #121212 50%, #1a1a1a 100%);
 }
 
 .shell {
@@ -53,7 +53,7 @@ header {
   display: block;
   width: 120px;
   height: auto;
-  background: #333333;
+  background: #1a1a1a;
   border: 1px solid var(--border);
   border-radius: 8px;
   padding: 4px;
@@ -71,7 +71,7 @@ button {
   background: linear-gradient(125deg, var(--button-bg), var(--button-hover));
   color: #ffffff;
   padding: 14px 18px;
-  font: 600 14px 'Manrope', sans-serif;
+  font: 600 14px 'Open Sans', sans-serif;
   cursor: pointer;
   width: 100%;
   margin-top: 14px;
@@ -103,7 +103,7 @@ button:hover {
 }
 
 .hero h1, .hero h2 {
-  font-family: 'Playfair Display', serif;
+  font-family: 'Open Sans', sans-serif;
   color: var(--text-primary);
 }
 
@@ -127,10 +127,8 @@ label {
   margin-top: 14px;
 }
 
-input,
-textarea,
-select {
-  font: 400 16px 'Manrope', sans-serif;
+input, textarea, select {
+  font: 400 16px 'Open Sans', sans-serif;
   width: 100%;
   border: 1px solid var(--input-border);
   background: var(--input-bg);
@@ -178,8 +176,7 @@ nav button.active {
 
 .hidden { display: none; }
 
-.service,
-.card {
+.service, .card {
   background: var(--card-bg);
   border: 1px solid var(--border);
   border-radius: 18px;
@@ -188,12 +185,9 @@ nav button.active {
   color: var(--text-primary);
 }
 
-.service.active {
-  outline: 2px solid var(--accent);
-}
+.service.active { outline: 2px solid var(--accent); }
 
-.service small,
-.muted { color: var(--text-secondary); }
+.service small, .muted { color: var(--text-secondary); }
 
 .slots {
   display: flex;
@@ -239,7 +233,7 @@ nav button.active {
 .stats b {
   display: block;
   font-size: 27px;
-  font-family: 'Playfair Display', serif;
+  font-family: 'Open Sans', sans-serif;
 }
 
 .card h3 {
