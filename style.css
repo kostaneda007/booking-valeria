@@ -1,6 +1,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;500;600;700&display=swap');
 
 :root {
+  color-scheme: dark;
   --bg-primary: #121212;
   --bg-gradient-start: #1a1a1a;
   --bg-gradient-end: #0d0d0d;
@@ -135,6 +136,11 @@ input, textarea, select {
   border-radius: 14px;
   margin-top: 6px;
   color: var(--text-primary);
+}
+
+select option {
+  background: #222222;
+  color: #eaeaea;
 }
 
 textarea { min-height: 85px; }
