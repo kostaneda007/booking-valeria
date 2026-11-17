@@ -30,31 +30,47 @@
       <h1>Забронируйте время на звонок</h1>
       <p>Выберите удобную дату и услугу, оставьте контакт и мастер перезвонит для подтверждения.</p>
 
-      <div class="grid">
+      <div id="guestCalendar">
         <div class="form-group">
-          <label>Ваше имя<input id="guestName" type="text" placeholder="Ваше имя" required></label>
+          <label>Услуга<br>
+            <select id="guestServices" onchange="chooseGuestService(this.value)"></select>
+          </label>
         </div>
+
         <div class="form-group">
-          <label>Телефон<input id="guestPhone" type="tel" placeholder="Телефон" required></label>
+          <label>Дата<br>
+            <input id="guestDate" type="date" onchange="loadGuestSlots()">
+          </label>
         </div>
+
+        <div id="guestSlots" class="slots"></div>
       </div>
 
-      <label>Услуга
-        <select id="guestServices"></select>
-      </label>
+      <div id="guestContactForm" class="hidden">
+        <div class="grid">
+          <div class="form-group">
+            <label>Ваше имя<br>
+              <input id="guestName" type="text" placeholder="Ваше имя" required>
+            </label>
+          </div>
+          <div class="form-group">
+            <label>Телефон<br>
+              <input id="guestPhone" type="tel" placeholder="Телефон" required>
+            </label>
+          </div>
+        </div>
 
-      <label>Дата<input id="guestDate" type="date" onchange="loadGuestSlots()"></label>
-      <div id="guestSlots" class="slots"></div>
+        <button id="guestCreateBtn" class="primary" disabled onclick="createGuestBooking()">Запросить звонок</button>
+        <div id="guestResult" class="muted"></div>
 
-      <button id="guestCreateBtn" disabled onclick="createGuestBooking()">Запросить звонок</button>
-      <div id="guestResult" class="muted"></div>
-
-      <p class="muted" style="margin-top:18px;">
-        <button onclick="showLoginView()">Админ-панель</button>
-      </p>
+        <button onclick="showCalendar()" style="margin-top:10px;">← Назад</button>
+        <p class="muted" style="margin-top:18px;">
+          <button onclick="showLoginView()">Админ-панель</button>
+        </p>
+      </div>
     </section>
 
-    <!-- Кабинет клиента -->
+<!-- Кабинет клиента -->
     <div id="view-client" class="hidden">
       <nav>
         <button data-tab="book" class="active">Записаться</button>

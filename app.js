@@ -29,7 +29,8 @@ async function init() {
 
   const { data: { session } } = await sb.auth.getSession();
   if (!session) {
-    
+    showGuestView();
+    loadGuestServices();
     return;
   }
 
@@ -439,7 +440,26 @@ async function toggleBlock(id, currentStatus) {
 
 
 
+
+function setTodayDate() {
+  const today = new Date();
+  const y = today.getFullYear();
+  const m = String(today.getMonth() + 1).padStart(2, '0');
+  const d = String(today.getDate()).padStart(2, '0');
+  const el = document.getElementById('guestDate');
+  if (el) el.value = `${y}-${m}-${d}`;
+}
+
 // --- Гостевой бронирование без регистрации ---
+function setTodayDate() {
+  const today = new Date();
+  const y = today.getFullYear();
+  const m = String(today.getMonth() + 1).padStart(2, '0');
+  const d = String(today.getDate()).padStart(2, '0');
+  const el = document.getElementById('guestDate');
+  if (el) el.value = `${y}-${m}-${d}`;
+}
+
 async function loadGuestServices() {
   const { data, error } = await sb
     .from('services')
@@ -447,33 +467,41 @@ async function loadGuestServices() {
     .eq('is_active', true)
     .order('sort_order');
   if (error) return toast(error.message);
-  services = data || [];
-  const select = document.querySelector('#guestServices');
+  const services = data || [];
+  const select = document.getElementById('guestServices');
   select.innerHTML = services
     .map(s => `<option value="${s.id}">${esc(s.name)}</option>`)
     .join('');
-  if (services.length > 0) {
-    chooseGuestService(services[0].id);
+  setTodayDate();
+  if (services.length === 0) {
+    select.innerHTML = '<option value="">Услуги не настроены</option>';
+    document.getElementById('guestSlots').innerHTML = '<span class="muted">Нет доступных услуг.</span>';
+    return;
   }
+  // default to first service
+  const firstService = services[0];
+  chooseGuestService(firstService.id);
 }
 
 function chooseGuestService(id) {
-  document.querySelectorAll('#guestServices option').forEach(opt => opt.classList.remove('selected'));
-  const opt = document.querySelector(`#guestServices option[value="${id}"]`);
-  if (opt) opt.classList.add('selected');
+  const select = document.getElementById('guestServices');
+  if (!select) return;
+  select.value = id;
   chosenGuestService = id;
   chosenGuestTime = null;
-  document.querySelector('#guestCreateBtn').disabled = true;
+  document.getElementById('guestCreateBtn').disabled = true;
+  document.getElementById('guestCalendar').classList.remove('hidden');
+  document.getElementById('guestContactForm').classList.add('hidden');
   loadGuestSlots();
 }
 
 async function loadGuestSlots() {
-  const date = document.querySelector('#guestDate').value;
+  const date = document.getElementById('guestDate').value;
   if (!date || !chosenGuestService) return;
   const { data, error } = await sb.rpc('get_available_slots', { p_date: date, p_service_id: chosenGuestService });
   if (error) return toast(error.message);
   const slots = (data || []).map(x => x.slot_time);
-  const container = document.querySelector('#guestSlots');
+  const container = document.getElementById('guestSlots');
   container.innerHTML = slots.length
     ? slots.map(x => `<button onclick="chooseGuestTime('${x}')">${x}</button>`).join('')
     : '<span class="muted">На эту дату нет свободного времени.</span>';
@@ -483,13 +511,16 @@ function chooseGuestTime(time) {
   document.querySelectorAll('#guestSlots button').forEach(btn => btn.classList.remove('selected'));
   event.target.classList.add('selected');
   chosenGuestTime = time;
-  document.querySelector('#guestCreateBtn').disabled = false;
+  document.getElementById('guestCreateBtn').disabled = false;
+  // Hide calendar, show contact form
+  document.getElementById('guestCalendar').classList.add('hidden');
+  document.getElementById('guestContactForm').classList.remove('hidden');
 }
 
 async function createGuestBooking() {
-  const name = document.querySelector('#guestName').value.trim();
-  const phone = document.querySelector('#guestPhone').value.trim();
-  const date = document.querySelector('#guestDate').value;
+  const name = document.getElementById('guestName').value.trim();
+  const phone = document.getElementById('guestPhone').value.trim();
+  const date = document.getElementById('guestDate').value;
   if (!name || !phone || !date || !chosenGuestService || !chosenGuestTime) {
     return toast('Заполните все поля');
   }
@@ -503,44 +534,24 @@ async function createGuestBooking() {
   });
   if (error) return toast(error.message);
   const confirmationCode = data.confirmation_code;
-  document.querySelector('#guestResult').innerHTML = 
-    `<p class="muted">Запись создана. Ваш код подтверждения: <strong>${confirmationCode}</strong>.</p>`;
-  document.querySelector('#guestCreateBtn').disabled = true;
-  // Reset form
-  document.querySelector('#guestName').value = '';
-  document.querySelector('#guestPhone').value = '';
-  document.querySelector('#guestDate').value = '';
-  document.querySelector('#guestSlots').innerHTML = '';
+  const result = document.getElementById('guestResult');
+  result.innerHTML = `<p class="muted">Запись создана. Ваш код подтверждения: <strong>${confirmationCode}</strong>.</p>`;
+  // Reset to calendar
+  document.getElementById('guestCalendar').classList.remove('hidden');
+  document.getElementById('guestContactForm').classList.add('hidden');
+  document.getElementById('guestSlots').innerHTML = '';
+  document.getElementById('guestName').value = '';
+  document.getElementById('guestPhone').value = '';
+  document.getElementById('guestDate').value = '';
   chosenGuestService = null;
   chosenGuestTime = null;
+  document.getElementById('guestCreateBtn').disabled = true;
 }
 
-async function loadGuestRequests() {
-  const { data, error } = await sb.rpc('get_pending_guest_bookings');
-  if (error) return toast(error.message);
-  const container = document.querySelector('#guestRequestsList');
-  if (!data || data.length === 0) {
-    container.innerHTML = '<p class="muted">Нет ожидающих запросов.</p>';
-    return;
-  }
-  container.innerHTML = data.map(gb => `
-    <div class="card">
-      <h3>${esc(gb.service_name)}</h3>
-      <b>${esc(gb.name)}</b><br>
-      Телефон: ${esc(gb.phone)}<br>
-      Дата: ${new Date(gb.date).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' })} в ${gb.start_time.slice(0,5)}<br>
-      Код подтверждения: ${gb.confirmation_code}
-      <button onclick="confirmGuestBooking('${gb.id}')">Подтвердить</button>
-    </div>
-  `).join('');
+function showCalendar() {
+  document.getElementById('guestContactForm').classList.add('hidden');
+  document.getElementById('guestCalendar').classList.remove('hidden');
+  setTodayDate();
+  loadGuestSlots();
 }
-
-async function confirmGuestBooking(id) {
-  if (!confirm('Подтвердить эту гостевую запись?')) return;
-  const { error } = await sb.rpc('confirm_guest_booking', { p_booking_id: id });
-  if (error) return toast(error.message);
-  toast('Запись подтверждена');
-  loadGuestRequests();
-}
-
 init();
