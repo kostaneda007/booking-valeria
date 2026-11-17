@@ -97,19 +97,21 @@ header {
 
 .admin-login label {
   flex: 1;
-  font-size: 13px;
+  font-size: 15px;
   font-weight: 600;
-  margin-top: 6px;
+  margin-top: 8px;
+  line-height: 1.2;
 }
 
 .admin-login input {
   width: 100%;
-  padding: 10px;
+  padding: 16px;
   border: 1px solid var(--input-border);
   background: var(--input-bg);
-  border-radius: 10px;
+  border-radius: 14px;
   color: var(--text-primary);
-  font: 400 15px 'Open Sans', sans-serif;
+  font: 400 18px 'Open Sans', sans-serif;
+  box-sizing: border-box;
 }
 
 .admin-login button {
