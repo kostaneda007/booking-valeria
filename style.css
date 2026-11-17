@@ -131,6 +131,8 @@ header {
 
 /* Minimal login button (used as link-like button) */
 .login-as-admin {
+  width: auto;
+  margin-top: 0;
   background: rgba(255,255,255,0.1);
   color: var(--text-primary);
   border: 1px solid var(--border);

@@ -53,7 +53,11 @@ async function init() {
   }
 
   currentProfile = profile;
-  document.querySelector('#logoutBtn').classList.remove('hidden');
+  const adminBtn = document.getElementById('adminPanelBtn');
+  if (adminBtn) {
+    adminBtn.textContent = 'Выйти из админки';
+    adminBtn.onclick = logout;
+  }
 
   if (profile.role === 'master') {
     document.querySelector('#masterGreeting').textContent = `Добрый день, ${profile.name || 'Валерия'}`;
@@ -89,33 +93,17 @@ function showLoginView() {
   showView('login');
 }
 
-/* Admin login – hardcoded credentials */
+/* Admin login – real Supabase Auth session */
 async function adminLogin() {
   const login = document.getElementById('loginField').value.trim();
   const password = document.getElementById('passwordField').value.trim();
-  if (login === 'Valery' && password === '!Kostler89') {
-    // emulate a master session (real frontend uses Supabase role 'master')
-    currentUser = { id: 'admin', email: 'valery@example.com', app_metadata: {} };
-    currentProfile = {
-      id: 'admin',
-      name: 'Валерия',
-      phone: '+7 (123) 456-78-90',
-      role: 'master',
-      status: 'active'
-    };
-    document.getElementById('adminPanelBtn').textContent = 'Выйти из админки';
-    showView('master');
-    initTabs('view-master');
-    const today = new Date().toISOString().slice(0, 10);
-    for (const id of ['wdate', 'bdate', 'calendarDate']) {
-      const el = document.querySelector('#' + id);
-      if (el) el.value = today;
-    }
-    loadTab('dashboard');
-    toast('Добро пожаловать, администратор!');
-  } else {
-    toast('Неверный логин или пароль');
-  }
+  if (!login || !password) return toast('Введите логин и пароль');
+
+  const email = login.includes('@') ? login : `${login.toLowerCase()}@booking.local`;
+  const { error } = await sb.auth.signInWithPassword({ email, password });
+  if (error) return toast('Неверный логин или пароль: ' + error.message);
+
+  location.reload();
 }
 
 function initTabs(containerId) {
