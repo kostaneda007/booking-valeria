@@ -29,8 +29,7 @@ async function init() {
 
   const { data: { session } } = await sb.auth.getSession();
   if (!session) {
-    showGuestView();
-    loadGuestServices();
+    
     return;
   }
 
