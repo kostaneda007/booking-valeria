@@ -358,7 +358,7 @@ async function addWindow() {
 }
 
 async function loadWindows() {
-  const { data, error } = await sb.from('work_windows').select('*, profiles(name, phone)').order('date').order('start_time');
+  const { data, error } = await sb.from('work_windows').select('*').order('date').order('start_time');
   if (error) return toast(error.message);
   document.querySelector('#windowsList').innerHTML = (data || [])
     .map((w) => `<div class="card"><b>${w.date}</b> · ${w.start_time.slice(0, 5)}–${w.end_time.slice(0, 5)}<br><span class="muted">${esc(w.comment || '')}</span><br><button onclick="deleteWindow(${w.id})">Удалить</button></div>`)
