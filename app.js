@@ -560,9 +560,15 @@ async function createGuestBooking() {
     p_comment: ''
   });
   if (error) return toast(error.message);
+  const svcObj = (services || []).find(s => s.id === chosenGuestService);
+  const svcName = svcObj ? svcObj.name : 'Запись к мастеру';
+  const dur = svcObj ? (svcObj.duration_min || 60) : 60;
   const confirmationCode = data && data.length ? data[0].confirmation_code : '';
   const result = document.getElementById('guestResult');
-  result.innerHTML = `<p class="muted">Запись создана. Ваш код подтверждения: <strong>${confirmationCode}</strong>.</p>`;
+  result.innerHTML = `<div class="card" style="margin-top:12px;">
+    <p>Запись создана! Код подтверждения: <strong>${esc(confirmationCode)}</strong></p>
+    <button type="button" class="primary" style="margin-top:8px;" onclick="downloadICS('${esc(svcName)}', '${date}', '${chosenGuestTime}', ${dur}, 'Код подтверждения: ${esc(confirmationCode)}')">Добавить в календарь телефона</button>
+  </div>`;
   // Reset to calendar
   document.getElementById('guestCalendar').classList.remove('hidden');
   document.getElementById('guestContactForm').classList.add('hidden');
@@ -593,4 +599,37 @@ async function loadGuestSlots() {
     ? slots.map(x => `<button onclick="chooseGuestTime('${x}')">${x}</button>`).join('')
     : '<span class="muted">На эту дату нет свободного времени.</span>';
 }
+function downloadICS(title, dateStr, timeStr, durationMin, description) {
+  const [y, m, d] = dateStr.split('-').map(Number);
+  const [hh, mm] = timeStr.slice(0, 5).split(':').map(Number);
+  const start = new Date(y, m - 1, d, hh, mm, 0);
+  const end = new Date(start.getTime() + (durationMin || 60) * 60000);
+  const fmt = (dt) => dt.getFullYear().toString()
+    + String(dt.getMonth() + 1).padStart(2, '0')
+    + String(dt.getDate()).padStart(2, '0') + 'T'
+    + String(dt.getHours()).padStart(2, '0')
+    + String(dt.getMinutes()).padStart(2, '0') + '00';
+  const ics = [
+    'BEGIN:VCALENDAR',
+    'VERSION:2.0',
+    'PRODID:-//Booking Valeria//RU',
+    'BEGIN:VEVENT',
+    `UID:${Date.now()}@booking-valeria`,
+    `DTSTAMP:${fmt(new Date())}`,
+    `DTSTART:${fmt(start)}`,
+    `DTEND:${fmt(end)}`,
+    `SUMMARY:${title}`,
+    `DESCRIPTION:${description || ''}`,
+    'END:VEVENT',
+    'END:VCALENDAR'
+  ].join('\r\n');
+  const blob = new Blob([ics], { type: 'text/calendar;charset=utf-8' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `booking-${dateStr}-${timeStr.slice(0, 5).replace(':', '')}.ics`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+}
+
 init();
