@@ -4,7 +4,7 @@
 -- 1. Профили пользователей (связаны с auth.users)
 create table if not exists public.profiles (
   id uuid primary key references auth.users(id) on delete cascade,
-  role text not null default 'client' check (role in ('master', 'client')),
+  role text not null default 'client' check (role in ('master', 'admin', 'client')),
   email text unique,
   name text,
   phone text,
@@ -106,7 +106,7 @@ set search_path = public
 as $$
   select exists (
     select 1 from public.profiles
-    where id = auth.uid() and role = 'master' and status = 'active'
+    where id = auth.uid() and role in ('master', 'admin') and status = 'active'
   );
 $$;
 
