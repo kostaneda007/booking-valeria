@@ -355,5 +355,13 @@ nav button.active {
   .glass { padding: 19px; border-radius: 23px; }
   .hero { margin-top: 5vh; }
   .grid, .stats { grid-template-columns: 1fr; }
-  .hero h1 { font-size: 36px; }
+  #loginField, #passwordField {
+  padding: 16px;
+  font-size: 18px;
+  width: 100%;
+  box-sizing: border-box;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  margin-bottom: 8px;
+}
 }

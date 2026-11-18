@@ -59,7 +59,7 @@ async function init() {
     adminBtn.onclick = logout;
   }
 
-  if (profile.role === 'master') {
+  if (profile.role === 'admin' || profile.role === 'master') {
     document.querySelector('#masterGreeting').textContent = `Добрый день, ${profile.name || 'Валерия'}`;
     showView('master');
     initTabs('view-master');
@@ -464,7 +464,12 @@ function setTodayDate() {
   const m = String(today.getMonth() + 1).padStart(2, '0');
   const d = String(today.getDate()).padStart(2, '0');
   const el = document.getElementById('guestDate');
-  if (el) el.value = `${y}-${m}-${d}`;
+  if (el) {
+    el.type = 'date';
+    el.min = '2023-01-01';
+    el.max = '2024-12-31';
+    el.value = `${y}-${m}-${d}`;
+  }
 }
 
 // --- Гостевой бронирование без регистрации ---
@@ -474,7 +479,12 @@ function setTodayDate() {
   const m = String(today.getMonth() + 1).padStart(2, '0');
   const d = String(today.getDate()).padStart(2, '0');
   const el = document.getElementById('guestDate');
-  if (el) el.value = `${y}-${m}-${d}`;
+  if (el) {
+    el.type = 'date';
+    el.min = '2023-01-01';
+    el.max = '2024-12-31';
+    el.value = `${y}-${m}-${d}`;
+  }
 }
 
 async function loadGuestServices() {
